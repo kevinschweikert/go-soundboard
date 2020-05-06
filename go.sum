@@ -26,6 +26,8 @@ github.com/gopherjs/gopherjs v0.0.0-20180628210949-0892b62f0d9f/go.mod h1:wJfORR
 github.com/gopherjs/gopherjs v0.0.0-20180825215210-0210a2f0f73c/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=
 github.com/gopherjs/gopherwasm v0.1.1/go.mod h1:kx4n9a+MzHH0BJJhvlsQ65hqLFXDO/m256AsaDPQ+/4=
 github.com/gopherjs/gopherwasm v1.0.0/go.mod h1:SkZ8z7CWBz5VXbhJel8TxCmAcsQqzgWGR/8nMhyhZSI=
+github.com/gorilla/websocket v1.4.2 h1:+/TMaTYc4QFitKJxsQ7Yye35DkWvkdLcvGKqM+x0Ufc=
+github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/hajimehoshi/go-mp3 v0.1.1 h1:Y33fAdTma70fkrxnc9u50Uq0lV6eZ+bkAlssdMmCwUc=
 github.com/hajimehoshi/go-mp3 v0.1.1/go.mod h1:4i+c5pDNKDrxl1iu9iG90/+fhP37lio6gNhjCx9WBJw=
 github.com/hajimehoshi/go-mp3 v0.2.1 h1:DH4ns3cPv39n3cs8MPcAlWqPeAwLCK8iNgqvg0QBWI8=
