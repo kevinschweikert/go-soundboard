@@ -1,8 +1,8 @@
 server:
-	go build -o go-soundboard main.go
+	go build -o go-soundboard *.go
 
 ui:
 	yarn --cwd ./webinterface/ run build
 
-run:
-	go run main.go
+dev:
+	go run *.go || yarn --cwd ./webinterface/ run dev

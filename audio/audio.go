@@ -2,8 +2,6 @@ package audio
 
 import (
 	"errors"
-	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,129 +13,133 @@ import (
 	"github.com/faiface/beep/wav"
 )
 
+// SoundFile holds a sound struct
 type SoundFile struct {
 	Path      string `json:"path"`
 	Name      string `json:"name"`
 	Extension string `json:"extension"`
-	Id        int    `json:"id"`
+	ID        int    `json:"id"`
 }
 
+// SoundDirectory collects all SoundFiles from a specific path
 type SoundDirectory struct {
-	SoundFiles []SoundFile
-	Path       string
+	SoundFiles []SoundFile `json:"soundfiles"`
+	Path       string      `json:"path"`
 }
 
-type AudioPanel struct {
+// Panel holds all Player structs like mixer, ctrl and Volume
+type Panel struct {
 	speakerSampleRate beep.SampleRate
 	mixer             *beep.Mixer
 	ctrl              *beep.Ctrl
-	volume            *effects.Volume
-	Err               error
-	OnErr             func(string)
+	Volume            *effects.Volume
+	SoundDir          SoundDirectory
 }
 
-func NewAudioPanel(speakerSampleRate beep.SampleRate) *AudioPanel {
-	Err := errors.New("")
+// NewAudioPanel returns a pointer to a Panel struct
+func NewPanel(speakerSampleRate int, dir SoundDirectory) *Panel {
 	mixer := &beep.Mixer{}
 	ctrl := &beep.Ctrl{Streamer: mixer}
 	volume := &effects.Volume{Streamer: mixer, Base: 2}
-	return &AudioPanel{speakerSampleRate, mixer, ctrl, volume, Err, func(string) {}}
+	return &Panel{beep.SampleRate(speakerSampleRate), mixer, ctrl, volume, dir}
 }
 
-func (ap *AudioPanel) Play(streamer beep.StreamSeekCloser, audioSampleRate beep.SampleRate) {
+// play plays the streamer in the argument
+func (ap *Panel) play(streamer beep.StreamSeekCloser, audioSampleRate beep.SampleRate) {
 	ap.Stop()
 	resampler := beep.Resample(4, audioSampleRate, ap.speakerSampleRate, streamer)
 	ap.mixer.Add(resampler)
 }
 
-func (ap *AudioPanel) sendError() {
-	ap.OnErr(ap.Err.Error())
-}
-
-func (ap *AudioPanel) Stop() {
+//Stop stops all playing streams
+func (ap *Panel) Stop() {
 	ap.mixer.Clear()
 }
 
-func (ap *AudioPanel) ChangeVolume(newVolume float64) {
+// ChangeVolume changes the Volume of the mixer
+func (ap *Panel) ChangeVolume(newVolume float64) float64 {
 	speaker.Lock()
-	ap.volume.Volume = newVolume
+	ap.Volume.Volume = newVolume
 	speaker.Unlock()
+	return ap.Volume.Volume
 }
 
-func (ap *AudioPanel) Init(buffSize int) {
-	Err := speaker.Init(ap.speakerSampleRate, buffSize)
-	if Err != nil {
-		log.Fatal("Could not initialize speaker")
+//Init initializes the speaker and plays the empty mixer
+func (ap *Panel) Init(buffSize int) error {
+	err := speaker.Init(ap.speakerSampleRate, buffSize)
+	if err != nil {
+		return err
 	}
-	speaker.Play(ap.volume)
+	speaker.Play(ap.Volume)
+	return nil
 }
 
-func GetFilesInFolder(folderPath string) SoundDirectory {
+// GetFilesInFolder returns a new SoundDorectory in a specified path
+func GetFilesInFolder(folderPath string) (SoundDirectory, error) {
 	var files []SoundFile
 	id := 0
-	Err := filepath.Walk(folderPath, OnFileFound(&files, &id))
-	if Err != nil {
-		log.Fatal(Err)
+	err := filepath.Walk(folderPath, onFileFound(&files, &id))
+	if err != nil {
+		return SoundDirectory{}, err
 	}
 
-	return SoundDirectory{SoundFiles: files, Path: folderPath}
+	return SoundDirectory{SoundFiles: files, Path: folderPath}, nil
 }
 
-func OnFileFound(files *[]SoundFile, counter *int) filepath.WalkFunc {
-	return func(path string, info os.FileInfo, Err error) error {
-		if Err != nil {
-			return Err
+func onFileFound(files *[]SoundFile, counter *int) filepath.WalkFunc {
+	return func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
 		}
 		if !info.IsDir() {
 			filenameParts := strings.Split(info.Name(), ".")
 			filename := filenameParts[0]
 			extension := strings.ToLower(filenameParts[len(filenameParts)-1])
-			*files = append(*files, SoundFile{Path: path, Name: filename, Extension: extension, Id: *counter})
+			*files = append(*files, SoundFile{Path: path, Name: filename, Extension: extension, ID: *counter})
 			*counter++
 		}
 		return nil
 	}
 }
 
-func (d *SoundDirectory) Reload() {
-	d.SoundFiles = GetFilesInFolder(d.Path).SoundFiles
+// Reload gets all the SoundFiles in the directory
+func (ap *Panel) Reload() error {
+	sd, err := GetFilesInFolder(ap.SoundDir.Path)
+	if err != nil {
+		return err
+	}
+	ap.SoundDir.SoundFiles = sd.SoundFiles
+	return nil
 }
 
-func (d *SoundDirectory) PlaySound(ap *AudioPanel, soundId int) {
+// PlaySound plays a specified SoundFile
+func (ap *Panel) PlaySound(s SoundFile) error {
 	var streamer beep.StreamSeekCloser
 	var format beep.Format
-	var Err error
 
-	sound := d.SoundFiles[soundId]
+	sound := ap.SoundDir.SoundFiles[s.ID]
 
-	f, Err := os.Open(sound.Path)
-	if Err != nil {
-		ap.Err = Err
-		return
+	f, err := os.Open(sound.Path)
+	if err != nil {
+		return errors.New("Can't open file: " + sound.Name)
 	}
 
 	switch sound.Extension {
 	case "mp3":
-		streamer, format, Err = mp3.Decode(f)
-		if Err != nil {
-			fmt.Println(Err)
-			ap.Err = Err
-			ap.sendError()
-			return
+		streamer, format, err = mp3.Decode(f)
+		if err != nil {
+			return errors.New("Can't decode file: " + sound.Name + "." + s.Extension)
 		}
 	case "wav":
-		streamer, format, Err = wav.Decode(f)
-		if Err != nil {
-			fmt.Println(Err)
-			ap.Err = Err
-			return
+		streamer, format, err = wav.Decode(f)
+		if err != nil {
+			return errors.New("Can't decode file: " + sound.Name + "." + s.Extension)
 		}
 	default:
-		fmt.Println("File format not supported")
-		ap.Err = errors.New("File format not supported")
-		ap.sendError()
-		return
+		return errors.New("Unknown file format")
 	}
 
-	ap.Play(streamer, format.SampleRate)
+	ap.play(streamer, format.SampleRate)
+
+	return nil
 }
