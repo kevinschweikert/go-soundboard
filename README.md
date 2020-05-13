@@ -1,17 +1,17 @@
-![Go Soundboard Screenshot](assets/go-soundboard-screen.png)
+![Go Soundboard Screenshot](assets/go-soundboard-banner.png)
 
-A Soundboard written in Go
+ A cross-plattform Soundboard written in Go and Svelte 
 
 ## Dependencies
 
-https://github.com/faiface/beep
-https://github.com/gorilla/websocket
+- [Nodejs](https://nodejs.org/en/) (Tested with Version 10)
+- [Go](https://golang.org/) (Tested with Version 1.14)
+- [Beep](https://github.com/faiface/beep) ( It uses [Oto](https://github.com/hajimehoshi/oto) under the hood, so check out the dependencies if something's not working with your audio playback )  
+- [Gorilla Websocket](https://github.com/gorilla/websocket)
 
-## Installation
+## Build
 
 ### Server
-
-Go Version >= 1.13
 
 ```bash
 make server
@@ -19,13 +19,18 @@ make server
 
 ### Webinterface
 
-Nodejs Version >= 10
-
 ```bash
 make ui
 ```
 
-## Command Line Flags
+## Development
+
+```bash
+make dev
+```
+
+
+## Usage
 
  ```bash
   -buff int
@@ -37,14 +42,7 @@ make ui
  ```
 
 
-TODO:
-
-- [ ] Rewrite packages so they become seperate / unaware from each other
-- [ ] Rethink error handling and sending
-- [ ] Broadcast errors or send them to a specific client
-- [ ] Sync volume setting to clients
-
-POSSIBLE FEATURES:
+POSSIBLE FUTURE FEATURES:
 
 - [ ] Create API for audio files and listen to them from the browser
 - [ ] Store volume and Favourite Sounds in Browser local storage
