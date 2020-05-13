@@ -36,7 +36,7 @@ type Panel struct {
 	SoundDir          SoundDirectory
 }
 
-// NewAudioPanel returns a pointer to a Panel struct
+// NewPanel returns a pointer to a Panel struct
 func NewPanel(speakerSampleRate int, dir SoundDirectory) *Panel {
 	mixer := &beep.Mixer{}
 	ctrl := &beep.Ctrl{Streamer: mixer}

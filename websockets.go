@@ -65,9 +65,8 @@ func (wd *WebSocketData) nMinusOne(c *websocket.Conn, m Msg) {
 	for client := range wd.Clients {
 		if c == client {
 			return
-		} else {
-			client.WriteJSON(m)
 		}
+		client.WriteJSON(m)
 	}
 }
 
