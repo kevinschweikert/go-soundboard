@@ -18,14 +18,16 @@
 
     websocket.onmessage = function(event) {
       const data = JSON.parse(event.data);
-
       switch (data.type) {
         case "load":
-          sounds = data.soundFiles;
+          sounds = data.soundfiles;
           break;
         case "error":
           notifier.danger(data.msg, 5000);
-          console.log(data.msg);
+          console.error(data.msg);
+          break;
+        case "volume":
+          volume = data.volume
           break;
         default:
           break;
@@ -38,10 +40,10 @@
     };
 
     websocket.onclose = function(event) {
-      console.log("closed");
+      console.info("Connection closed");
       connected = false;
       setTimeout(() => {
-        console.log("reconnecting");
+        console.info("reconnecting");
         connect();
       }, 5000);
     };
@@ -51,7 +53,7 @@
       connected = false;
       websocket.close();
       setTimeout(() => {
-        console.log("reconnecting");
+        console.info("reconnecting");
         connect();
       }, 5000);
     };
@@ -60,21 +62,21 @@
   const loadSounds = () => {
     const data = { type: "load" };
     ws.send(JSON.stringify(data));
-    console.log("reloading...");
   };
 
   const stopSounds = () => {
     const data = { type: "stop" };
     ws.send(JSON.stringify(data));
-    console.log("Stop");
   };
 
-  const changeVolume = normalizedVolume => {
-    const mappedVolume = (normalizedVolume - 1) * 10;
-    const data = { type: "volume", volume: mappedVolume };
-    console.log(data);
+  const changeVolume = () => {
+    const data = { type: "volume", volume: volume };
     ws.send(JSON.stringify(data));
   };
+
+  const playSound = (msg) => {
+    ws.send(JSON.stringify(msg))
+  }
 
   onMount(() => {
     connect();
@@ -150,8 +152,9 @@
     <small>{websocketUrl}</small>
   </p>
   <VolumeKnob
-    on:valueChanged={e => changeVolume(e.detail)}
+    on:valueChanged={changeVolume}
     width="200"
+    bind:value={volume}
     height="200"
     knobColor="#264653"
     indicatorColor="#2a9d8f"
@@ -165,7 +168,7 @@
 
   <section class="buttons">
     {#each sounds as sound}
-      <SoundButton soundFile={sound} {ws} {buttonColors} />
+      <SoundButton on:play={(e) => playSound(e.detail)} soundFile={sound} {buttonColors} />
     {/each}
   </section>
 </main>
