@@ -32,11 +32,13 @@ make dev
 
 ## Usage
 
- ```bash
-  -buff int
+```bash
+   -buff int
         Output buffer size in bytes (default 256)
   -path string
         path to sound files (default "./sounds")
+  -port int
+        Port to listen for the webinterface (default 8000)
   -samplerate int
         Output Samplerate in Hz (default 48000)
  ```
