@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/kevinschweikert/go-soundboard)](https://goreportcard.com/report/github.com/kevinschweikert/go-soundboard)
+
 ![Go Soundboard Screenshot](assets/go-soundboard-banner.png)
 
  A cross-plattform Soundboard written in Go and Svelte 
