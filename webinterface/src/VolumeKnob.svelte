@@ -1,7 +1,6 @@
 <script>
-    import {createEventDispatcher} from "svelte"
-
-    const dispatch = createEventDispatcher()
+  import {createEventDispatcher} from "svelte"
+  const dispatch = createEventDispatcher()
 
   export let angle = 270; // your script goes here
   export let minAngle = 0;
@@ -23,9 +22,20 @@
   export let textColor = "#fff";
 
   export let value = 0;
+  export let minValue = -10
+  export let maxValue = 0
+
   let arcLength = 2 * Math.PI * arcRadius;
   let arcPart = (angle / 360) * arcLength;
 
+  const checkOutOfBounds = () => {
+    if (angle > maxAngle) {
+      angle = maxAngle;
+    } else if (angle < minAngle) {
+      angle = minAngle;
+    }
+  }
+ 
   const handleWheel = e => {
     if (e.deltaY > 0) {
       angle = angle - 5;
@@ -33,12 +43,11 @@
       angle = angle + 5;
     }
 
-    if (angle > maxAngle) {
-      angle = maxAngle;
-    } else if (angle < minAngle) {
-      angle = minAngle;
-    }
+    checkOutOfBounds()
+    
 
+value = map_range(angle, minAngle, maxAngle, minValue, maxValue)
+    dispatch("valueChanged")
   };
 
   const handleTouchmove = (e) => {
@@ -50,20 +59,17 @@
           angle = angle - 3
       }
 
-      if (angle > maxAngle) {
-      angle = maxAngle;
-    } else if (angle < minAngle) {
-      angle = minAngle;
-    }
+      checkOutOfBounds()
 
+    value = map_range(angle, minAngle, maxAngle, minValue, maxValue)
+    dispatch("valueChanged")
   }
 
   function map_range(value, low1, high1, low2, high2) {
     return low2 + ((high2 - low2) * (value - low1)) / (high1 - low1);
   }
 
-  $: value = map_range(angle, minAngle, maxAngle, 0, 1);
-  $: dispatch("valueChanged", value)
+  $: angle = map_range(value, minValue,maxValue,minAngle,maxAngle);
 </script>
 
 <svg
@@ -79,7 +85,7 @@
     r={knobRadius}
     fill={knobColor} />
   <text text-anchor="middle" fill={textColor}>
-    {Math.round(value * 100)}
+    {Math.round(value*100)/100}
   </text>
   <circle
     cx={(knobRadius - knobInset) * -1}

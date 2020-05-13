@@ -1,21 +1,22 @@
 <script>
-  import { onMount } from "svelte";
+  import { createEventDispatcher } from "svelte";
 
+  const dispatch = createEventDispatcher()
   export let soundFile = {};
   export let fgColor = "white";
-  export let ws;
   export let buttonColors = [];
   const randomIndex = Math.floor(Math.random() * buttonColors.length);
   const bgColor = buttonColors[randomIndex];
 
-  const playSound = async () => {
+   const playSound = () => {
     const playMsg = {
       type: "play",
-      soundID: soundFile.id,
-      msg: soundFile.name
+      soundfiles: [soundFile],
     };
-    ws.send(JSON.stringify(playMsg));
+    dispatch("play", playMsg);
   };
+
+
 </script>
 
 <style>
